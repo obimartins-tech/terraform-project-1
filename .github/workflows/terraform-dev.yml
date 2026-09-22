@@ -30,7 +30,7 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
- terraform-plan:
+  terraform-plan:
     needs: terraform-check
     runs-on: ubuntu-latest
 
