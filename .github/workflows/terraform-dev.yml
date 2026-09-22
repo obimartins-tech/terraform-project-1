@@ -36,6 +36,7 @@ jobs:
   terraform-plan:
     needs: terraform-check
     runs-on: ubuntu-latest
+    environment: development
 
     defaults:
       run:
