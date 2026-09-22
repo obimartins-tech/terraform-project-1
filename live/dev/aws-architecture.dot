@@ -1,0 +1,26 @@
+digraph AWS {
+
+    VPC [
+        label="VPC"
+        shape=box
+    ];
+
+    Subnet [
+        label="Public Subnet"
+        shape=box
+    ];
+
+    EC2 [
+        label="EC2 Instance"
+        shape=box
+    ];
+
+    SecurityGroup [
+        label="Security Group"
+        shape=box
+    ];
+
+    VPC -> Subnet;
+    Subnet -> EC2;
+    EC2 -> SecurityGroup;
+}

@@ -1,0 +1,33 @@
+digraph G {
+  rankdir = "RL";
+  node [shape = rect, fontname = "sans-serif"];
+  "data.aws_ami.ubuntu" [label="data.aws_ami.ubuntu"];
+  subgraph "cluster_module.network" {
+    label = "module.network"
+    fontname = "sans-serif"
+    "module.network.aws_internet_gateway.main" [label="aws_internet_gateway.main"];
+    "module.network.aws_route_table.public" [label="aws_route_table.public"];
+    "module.network.aws_route_table_association.public" [label="aws_route_table_association.public"];
+    "module.network.aws_subnet.public" [label="aws_subnet.public"];
+    "module.network.aws_vpc.main" [label="aws_vpc.main"];
+  }
+  subgraph "cluster_module.security_group" {
+    label = "module.security_group"
+    fontname = "sans-serif"
+    "module.security_group.aws_security_group.web" [label="aws_security_group.web"];
+  }
+  subgraph "cluster_module.web_server" {
+    label = "module.web_server"
+    fontname = "sans-serif"
+    "module.web_server.aws_instance.web" [label="aws_instance.web"];
+  }
+  "module.network.aws_internet_gateway.main" -> "module.network.aws_vpc.main";
+  "module.network.aws_route_table.public" -> "module.network.aws_internet_gateway.main";
+  "module.network.aws_route_table_association.public" -> "module.network.aws_route_table.public";
+  "module.network.aws_route_table_association.public" -> "module.network.aws_subnet.public";
+  "module.network.aws_subnet.public" -> "module.network.aws_vpc.main";
+  "module.security_group.aws_security_group.web" -> "module.network.aws_vpc.main";
+  "module.web_server.aws_instance.web" -> "data.aws_ami.ubuntu";
+  "module.web_server.aws_instance.web" -> "module.network.aws_subnet.public";
+  "module.web_server.aws_instance.web" -> "module.security_group.aws_security_group.web";
+}
