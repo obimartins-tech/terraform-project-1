@@ -3,6 +3,12 @@ resource "aws_security_group" "web" {
   description = "Allow HTTP traffic to web server"
   vpc_id      = var.vpc_id
 
+#checkov:skip=CKV_AWS_260:Public HTTP access is intentionally required because this EC2 instance hosts a publicly accessible web server.
+resource "aws_security_group" "web" {
+  name   = "web-sg"
+  vpc_id = var.vpc_id
+
+
   ingress {
     description = "HTTP from Internet"
     from_port   = 80
