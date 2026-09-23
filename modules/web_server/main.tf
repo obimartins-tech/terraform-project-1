@@ -7,6 +7,17 @@ resource "aws_instance" "web" {
   vpc_security_group_ids      = [var.security_group_id]
   associate_public_ip_address = true
 
+
+metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
+
+root_block_device {
+  encrypted = true
+}
+
   user_data = <<-EOF
     #!/bin/bash
 
