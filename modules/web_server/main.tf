@@ -1,4 +1,6 @@
 resource "aws_instance" "web" {
+  #checkov:skip=CKV_AWS_88:Public IP is intentionally required because this EC2 instance directly hosts the publicly accessible web server.
+  
   ami                         = var.ami
   instance_type               = var.instance_type
   subnet_id                   = var.subnet_id
