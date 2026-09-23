@@ -14,6 +14,12 @@ resource "aws_cloudwatch_log_group" "vpc_flow_log" {
   retention_in_days = 30
 }
 
+resource "aws_flow_log" "main" {
+  vpc_id               = aws_vpc.main.id
+  traffic_type         = "ALL"
+  log_destination_type = "cloud-watch-logs"
+  log_destination      = aws_cloudwatch_log_group.vpc_flow_log.arn
+}
 
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
