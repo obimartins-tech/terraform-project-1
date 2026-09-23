@@ -8,6 +8,13 @@ resource "aws_vpc" "main" {
   }
 }
 
+
+resource "aws_cloudwatch_log_group" "vpc_flow_log" {
+  name              = "/aws/vpc/flow-logs"
+  retention_in_days = 30
+}
+
+
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
