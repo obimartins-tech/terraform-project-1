@@ -7,6 +7,7 @@ resource "aws_instance" "web" {
   vpc_security_group_ids      = [var.security_group_id]
   associate_public_ip_address = true
 
+monitoring = true
 
 metadata_options {
     http_endpoint = "enabled"
