@@ -8,6 +8,7 @@ resource "aws_instance" "web" {
   associate_public_ip_address = true
 
 monitoring = true
+ebs_optimized = true
 
 metadata_options {
     http_endpoint = "enabled"
