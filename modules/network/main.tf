@@ -11,7 +11,7 @@ resource "aws_vpc" "main" {
 resource "aws_kms_key" "vpc_flow_log" {
   description = "KMS key for VPC Flow Logs"
   enable_key_rotation     = true
-  deletion_window_in_days = 30
+  deletion_window_in_days = 365
 }
 
 resource "aws_cloudwatch_log_group" "vpc_flow_log" {
