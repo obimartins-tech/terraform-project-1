@@ -1,7 +1,8 @@
 resource "aws_security_group" "web" {
   #checkov:skip=CKV_AWS_260:Public HTTP access is intentionally required because this EC2 instance hosts a publicly accessible web server.
   #checkov:skip=CKV_AWS_382:Unrestricted outbound access is intentionally required for this web server to retrieve updates, packages, dependencies, and external resources.
-  
+  #checkov:skip=CKV_AWS_5:Security Groups are attached to other resources.
+
   name        = "${var.project_name}-web-sg"
   description = "Allow HTTP traffic to web server"
   vpc_id      = var.vpc_id
