@@ -8,6 +8,10 @@ resource "aws_vpc" "main" {
   }
 }
 
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.main.id
+}
+
 resource "aws_kms_key" "vpc_flow_log" {
   description = "KMS key for VPC Flow Logs"
   enable_key_rotation     = true
