@@ -23,8 +23,9 @@ data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
 
-#checkov:skip=CKV_AWS_356:Resource star is required by AWS for KMS key policies; the policy is attached directly to the specific VPC Flow Logs KMS key.
+
 data "aws_iam_policy_document" "vpc_flow_log_kms" {
+  #checkov:skip=CKV_AWS_356:Resource star is rattached directly to the specific VPC Flow Logs KMS key.
 
   # Allows the AWS account to retain control of the KMS key.
   statement {
