@@ -18,6 +18,31 @@ resource "aws_kms_key" "vpc_flow_log" {
   deletion_window_in_days = 30
 }
 
+
+data "aws_caller_identity" "current" {}
+
+data "aws_iam_policy_document" "vpc_flow_log_kms" {
+  statement {
+    sid    = "EnableAccountPermissions"
+    effect = "Allow"
+
+    principals {
+      type        = "AWS"
+      identifiers = [
+        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+      ]
+    }
+
+    actions   = ["kms:*"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_kms_key_policy" "vpc_flow_log" {
+  key_id = aws_kms_key.vpc_flow_log.id
+  policy = data.aws_iam_policy_document.vpc_flow_log_kms.json
+}
+
 resource "aws_cloudwatch_log_group" "vpc_flow_log" {
   name              = "/aws/vpc/flow-logs"
   retention_in_days = 365
