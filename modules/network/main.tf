@@ -22,18 +22,57 @@ resource "aws_kms_key" "vpc_flow_log" {
 data "aws_caller_identity" "current" {}
 
 data "aws_iam_policy_document" "vpc_flow_log_kms" {
+
+  # Allows the AWS account to administer the KMS key.
   statement {
     sid    = "EnableAccountPermissions"
     effect = "Allow"
 
     principals {
-      type        = "AWS"
+      type = "AWS"
       identifiers = [
         "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
       ]
     }
 
-    actions   = ["kms:*"]
+    actions = [
+      "kms:CreateGrant",
+      "kms:DescribeKey",
+      "kms:EnableKey",
+      "kms:DisableKey",
+      "kms:EnableKeyRotation",
+      "kms:DisableKeyRotation",
+      "kms:GetKeyPolicy",
+      "kms:PutKeyPolicy",
+      "kms:ListKeyPolicies",
+      "kms:ListResourceTags",
+      "kms:TagResource",
+      "kms:UntagResource",
+      "kms:ScheduleKeyDeletion",
+      "kms:CancelKeyDeletion"
+    ]
+
+    resources = ["*"]
+  }
+
+  # Allows CloudWatch Logs to use the key for encryption.
+  statement {
+    sid    = "AllowCloudWatchLogsUseOfKey"
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["logs.amazonaws.com"]
+    }
+
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey"
+    ]
+
     resources = ["*"]
   }
 }
@@ -42,6 +81,7 @@ resource "aws_kms_key_policy" "vpc_flow_log" {
   key_id = aws_kms_key.vpc_flow_log.id
   policy = data.aws_iam_policy_document.vpc_flow_log_kms.json
 }
+
 
 resource "aws_cloudwatch_log_group" "vpc_flow_log" {
   name              = "/aws/vpc/flow-logs"
