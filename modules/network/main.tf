@@ -21,48 +21,42 @@ resource "aws_kms_key" "vpc_flow_log" {
 
 data "aws_caller_identity" "current" {}
 
+data "aws_region" "current" {}
+
 data "aws_iam_policy_document" "vpc_flow_log_kms" {
 
-  # Allows the AWS account to administer the KMS key.
+  # Allows the AWS account to retain control of the KMS key.
   statement {
     sid    = "EnableAccountPermissions"
     effect = "Allow"
 
     principals {
       type = "AWS"
+
       identifiers = [
         "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
       ]
     }
 
     actions = [
-      "kms:CreateGrant",
       "kms:DescribeKey",
-      "kms:EnableKey",
-      "kms:DisableKey",
-      "kms:EnableKeyRotation",
-      "kms:DisableKeyRotation",
       "kms:GetKeyPolicy",
-      "kms:PutKeyPolicy",
       "kms:ListKeyPolicies",
       "kms:ListResourceTags",
-      "kms:TagResource",
-      "kms:UntagResource",
-      "kms:ScheduleKeyDeletion",
-      "kms:CancelKeyDeletion"
+      "kms:GetKeyRotationStatus"
     ]
 
     resources = ["*"]
   }
 
-  # Allows CloudWatch Logs to use the key for encryption.
+  # Allows CloudWatch Logs to use this key.
   statement {
     sid    = "AllowCloudWatchLogsUseOfKey"
     effect = "Allow"
 
     principals {
       type        = "Service"
-      identifiers = ["logs.amazonaws.com"]
+      identifiers = ["logs.${data.aws_region.current.name}.amazonaws.com"]
     }
 
     actions = [
@@ -74,6 +68,18 @@ data "aws_iam_policy_document" "vpc_flow_log_kms" {
     ]
 
     resources = ["*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "kms:ViaService"
+      values   = ["logs.${data.aws_region.current.name}.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "kms:CallerAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
   }
 }
 
