@@ -10,6 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
+
   terraform-check:
     runs-on: ubuntu-latest
 
@@ -38,47 +39,49 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Test with Checkov
         id: checkov
         uses: bridgecrewio/checkov-action@master
         with:
           directory: live/dev
-          framework: terraform       
+          framework: terraform
 
   terraform-plan:
-  needs: checkov-test
-  runs-on: ubuntu-latest
-  environment: development
+    needs: checkov-test
+    runs-on: ubuntu-latest
+    environment: development
 
-  permissions:
-    id-token: write
-    contents: read
+    permissions:
+      id-token: write
+      contents: read
 
-  defaults:
-    run:
-      working-directory: live/dev
+    defaults:
+      run:
+        working-directory: live/dev
 
-  steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: arn:aws:iam::841338716314:role/github-actions-terraform-role
-        aws-region: us-east-2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::841338716314:role/github-actions-terraform-role
+          aws-region: us-east-2
 
-    - name: Check AWS identity
-      run: aws sts get-caller-identity
+      - name: Check AWS identity
+        run: aws sts get-caller-identity
 
-    - name: Terraform Init
-      run: terraform init
+      - name: Terraform Init
+        run: terraform init
 
-    - name: Terraform Plan
-      run: terraform plan
+      - name: Terraform Plan
+        run: terraform plan
 
 
