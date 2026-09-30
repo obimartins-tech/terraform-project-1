@@ -52,7 +52,6 @@ jobs:
   terraform-plan:
     needs: checkov-test
     runs-on: ubuntu-latest
-    environment: development
 
     permissions:
       id-token: write
