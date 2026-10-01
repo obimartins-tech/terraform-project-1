@@ -40,14 +40,7 @@ data "aws_iam_policy_document" "vpc_flow_log_kms" {
       ]
     }
 
-    actions = [
-      "kms:DescribeKey",
-      "kms:GetKeyPolicy",
-      "kms:ListKeyPolicies",
-      "kms:ListResourceTags",
-      "kms:GetKeyRotationStatus"
-    ]
-
+    actions   = ["kms:*"]
     resources = ["*"]
   }
 
