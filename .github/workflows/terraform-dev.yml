@@ -14,6 +14,10 @@ jobs:
   terraform-check:
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write
+      contents: read
+
     defaults:
       run:
         working-directory: live/dev
@@ -24,6 +28,17 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::841338716314:role/github-actions-terraform-role
+          aws-region: us-east-2
+
+      - name: Check AWS identity
+        run: aws sts get-caller-identity
+
 
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
@@ -81,6 +96,53 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -out=tfplan
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: live/dev/tfplan
+
+
+  terraform-apply:
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    defaults:
+      run:
+        working-directory: live/dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::841338716314:role/github-actions-terraform-role
+          aws-region: us-east-2
+
+      - name: Check AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
+          path: live/dev  
+
+      - name: Terraform Apply
+        run: terraform apply tfplan
 
 
