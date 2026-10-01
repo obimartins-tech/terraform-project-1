@@ -25,10 +25,12 @@ data "aws_region" "current" {}
 
 
 data "aws_iam_policy_document" "vpc_flow_log_kms" {
-  #checkov:skip=CKV_AWS_356:Resource star is rattached directly to the specific VPC Flow Logs KMS key.
-
-  # Allows the AWS account to retain control of the KMS key.
+  #checkov:skip=CKV_AWS_356:KMS key policies use Resource "*" because the policy is attached directly to this specific KMS key.
+  
   statement {
+    #checkov:skip=CKV_AWS_109:KMS account-enabling statement requires key-management permissions so the AWS account can retain control of the key.
+    #checkov:skip=CKV_AWS_111:KMS account-enabling statement intentionally uses kms:* as required for the AWS KMS account-enabling policy pattern.
+    
     sid    = "EnableAccountPermissions"
     effect = "Allow"
 
