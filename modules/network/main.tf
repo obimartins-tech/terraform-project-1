@@ -23,7 +23,6 @@ data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
 
-
 data "aws_iam_policy_document" "vpc_flow_log_kms" {
   #checkov:skip=CKV_AWS_356:KMS key policies use Resource "*" because the policy is attached directly to this specific KMS key.
 
@@ -62,62 +61,22 @@ data "aws_iam_policy_document" "vpc_flow_log_kms" {
       "kms:Decrypt",
       "kms:ReEncrypt*",
       "kms:GenerateDataKey*",
-      "kms:DescribeKey"
+      "kms:Describe*"
     ]
 
     resources = ["*"]
 
     condition {
-      test     = "StringEquals"
-      variable = "kms:ViaService"
-      values   = ["logs.${data.aws_region.current.region}.amazonaws.com"]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "kms:CallerAccount"
-      values   = [data.aws_caller_identity.current.account_id]
-    }
-
-    condition {
-      test     = "ArnLike"
+      test     = "ArnEquals"
       variable = "kms:EncryptionContext:aws:logs:arn"
+
       values = [
         "arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/vpc/flow-logs"
       ]
     }
   }
-
-  # Allows CloudWatch Logs to validate the KMS key when creating the log group.
-  statement {
-    sid    = "AllowCloudWatchLogsDescribeKey"
-    effect = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["logs.${data.aws_region.current.region}.amazonaws.com"]
-    }
-
-    actions = [
-      "kms:DescribeKey"
-    ]
-
-    resources = ["*"]
-
-    condition {
-      test     = "StringEquals"
-      variable = "kms:ViaService"
-      values   = ["logs.${data.aws_region.current.region}.amazonaws.com"]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "kms:CallerAccount"
-      values   = [data.aws_caller_identity.current.account_id]
-    }
-  }
-
 }
+
 
 resource "aws_kms_key_policy" "vpc_flow_log" {
   key_id = aws_kms_key.vpc_flow_log.id
@@ -140,6 +99,10 @@ resource "aws_flow_log" "main" {
   traffic_type         = "ALL"
   log_destination_type = "cloud-watch-logs"
   log_destination      = aws_cloudwatch_log_group.vpc_flow_log.arn
+
+  depends_on = [
+    aws_cloudwatch_log_group.vpc_flow_log
+  ]
 }
 
 resource "aws_internet_gateway" "main" {
