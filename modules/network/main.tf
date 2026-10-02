@@ -13,7 +13,7 @@ resource "aws_default_security_group" "default" {
 }
 
 resource "aws_kms_key" "vpc_flow_log" {
-  description = "KMS key for VPC Flow Logs"
+  description             = "KMS key for VPC Flow Logs"
   enable_key_rotation     = true
   deletion_window_in_days = 30
 }
@@ -26,67 +26,97 @@ data "aws_region" "current" {}
 
 data "aws_iam_policy_document" "vpc_flow_log_kms" {
   #checkov:skip=CKV_AWS_356:KMS key policies use Resource "*" because the policy is attached directly to this specific KMS key.
-  
+
   # Allows the AWS account to retain full control of the KMS key.
   statement {
-  #checkov:skip=CKV_AWS_109:KMS account-enabling statement requires key-management permissions so the AWS account can retain control of the key.
-  #checkov:skip=CKV_AWS_111:KMS account-enabling statement intentionally uses kms:* as required for the AWS KMS account-enabling policy pattern.
+    #checkov:skip=CKV_AWS_109:KMS account-enabling statement requires key-management permissions so the AWS account can retain control of the key.
+    #checkov:skip=CKV_AWS_111:KMS account-enabling statement intentionally uses kms:* as required for the AWS KMS account-enabling policy pattern.
 
-  sid    = "EnableAccountPermissions"
-  effect = "Allow"
+    sid    = "EnableAccountPermissions"
+    effect = "Allow"
 
-  principals {
-    type = "AWS"
+    principals {
+      type = "AWS"
 
-    identifiers = [
-      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+      identifiers = [
+        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+      ]
+    }
+
+    actions   = ["kms:*"]
+    resources = ["*"]
+  }
+
+  # Allows CloudWatch Logs to use this key for the VPC flow-log group.
+  statement {
+    sid    = "AllowCloudWatchLogsUseOfKey"
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["logs.${data.aws_region.current.region}.amazonaws.com"]
+    }
+
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey"
     ]
+
+    resources = ["*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "kms:ViaService"
+      values   = ["logs.${data.aws_region.current.region}.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "kms:CallerAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+
+    condition {
+      test     = "ArnLike"
+      variable = "kms:EncryptionContext:aws:logs:arn"
+      values = [
+        "arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/vpc/flow-logs"
+      ]
+    }
   }
 
-  actions   = ["kms:*"]
-  resources = ["*"]
-}
+  # Allows CloudWatch Logs to validate the KMS key when creating the log group.
+  statement {
+    sid    = "AllowCloudWatchLogsDescribeKey"
+    effect = "Allow"
 
-# Allows CloudWatch Logs to use this key for the VPC flow-log group.
-statement {
-  sid    = "AllowCloudWatchLogsUseOfKey"
-  effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["logs.${data.aws_region.current.region}.amazonaws.com"]
+    }
 
-  principals {
-    type        = "Service"
-    identifiers = ["logs.${data.aws_region.current.region}.amazonaws.com"]
-  }
-
-  actions = [
-    "kms:Encrypt",
-    "kms:Decrypt",
-    "kms:ReEncrypt*",
-    "kms:GenerateDataKey*",
-    "kms:DescribeKey"
-  ]
-
-  resources = ["*"]
-
-  condition {
-    test     = "StringEquals"
-    variable = "kms:ViaService"
-    values   = ["logs.${data.aws_region.current.region}.amazonaws.com"]
-  }
-
-  condition {
-    test     = "StringEquals"
-    variable = "kms:CallerAccount"
-    values   = [data.aws_caller_identity.current.account_id]
-  }
-
-  condition {
-    test     = "ArnLike"
-    variable = "kms:EncryptionContext:aws:logs:arn"
-    values = [
-      "arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/vpc/flow-logs"
+    actions = [
+      "kms:DescribeKey"
     ]
+
+    resources = ["*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "kms:ViaService"
+      values   = ["logs.${data.aws_region.current.region}.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "kms:CallerAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
   }
-}
+
 }
 
 resource "aws_kms_key_policy" "vpc_flow_log" {
