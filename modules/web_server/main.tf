@@ -1,6 +1,6 @@
 resource "aws_instance" "web" {
   #checkov:skip=CKV_AWS_88:Public IP is intentionally required because this EC2 instance directly hosts the publicly accessible web server.
-  
+
   ami                         = var.ami
   instance_type               = var.instance_type
   subnet_id                   = var.subnet_id
@@ -8,21 +8,21 @@ resource "aws_instance" "web" {
   associate_public_ip_address = true
 
 
-iam_instance_profile = aws_iam_instance_profile.web_server.name
+  iam_instance_profile = aws_iam_instance_profile.web_server.name
 
 
-monitoring = true
-ebs_optimized = true
+  monitoring    = true
+  ebs_optimized = true
 
-metadata_options {
+  metadata_options {
     http_endpoint = "enabled"
     http_tokens   = "required"
   }
 
 
-root_block_device {
-  encrypted = true
-}
+  root_block_device {
+    encrypted = true
+  }
 
   user_data = <<-EOF
     #!/bin/bash
