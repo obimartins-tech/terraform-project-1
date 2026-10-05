@@ -40,6 +40,7 @@ resource "aws_instance" "web" {
       <h1>EI Technologies - Terraform Infrastructure</h1>
       <p>This Ubuntu EC2 server was provisioned with Terraform.</p>
       <p>Infrastructure as Code practical.</p>
+      <p>Created by Martins Obi.</p>
     </body>
     </html>
     HTML
